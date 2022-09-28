@@ -1,8 +1,10 @@
 import { BigNumber } from '@ethersproject/bignumber'
 import { useBag } from 'nft/hooks'
-import { GenieAsset, Markets, UniformHeight } from 'nft/types'
+import { OrderFetcher } from 'nft/queries'
+import { GenieAsset, Markets, TokenType, UniformHeight } from 'nft/types'
 import { formatWeiToDecimal, isAudio, isVideo, rarityProviderLogo } from 'nft/utils'
-import { MouseEvent, useMemo } from 'react'
+import { MouseEvent, useEffect, useMemo, useState } from 'react'
+import { QueryClient } from 'react-query'
 
 import * as Card from './Card'
 
@@ -36,6 +38,10 @@ export const CollectionAsset = ({
   const itemsInBag = useBag((state) => state.itemsInBag)
   const bagExpanded = useBag((state) => state.bagExpanded)
   const toggleBag = useBag((state) => state.toggleBag)
+
+  const [possibleOrders, setPossibleOrders] = useState<string[]>([asset.currentEthPrice])
+  const [orderPriceStack, setOrderPriceStack] = useState<string[]>([asset.currentEthPrice])
+  const queryClient = new QueryClient()
 
   const { quantity, isSelected } = useMemo(() => {
     return {
@@ -71,6 +77,47 @@ export const CollectionAsset = ({
       rarityLogo: rarityProviderLogo[asset.rarity?.primaryProvider ?? 0] ?? '',
     }
   }, [asset])
+
+  const fetchNextPrice = async () => {
+    const data = await queryClient.fetchQuery(
+      ['orderFetcher', asset.tokenType, asset.tokenId, asset.address, orderPriceStack.length],
+      () =>
+        asset.tokenType === TokenType.ERC1155
+          ? OrderFetcher(asset.tokenId, asset.address, orderPriceStack.length)
+          : undefined
+    )
+
+    if (data) {
+      const newOrders = data.map((order) => order.price)
+      setPossibleOrders([...possibleOrders, ...newOrders])
+      setOrderPriceStack(newOrders.sort((a, b) => (BigNumber.from(a).lte(BigNumber.from(b)) ? -1 : 1)))
+    }
+  }
+
+  useEffect(() => {
+    if (asset.tokenType === TokenType.ERC1155) {
+      const pricesForToken = itemsInBag
+        .filter((item) => item.asset.tokenId === asset.tokenId && item.asset.address === asset.address)
+        .map((item) => item.asset.currentEthPrice)
+
+      const pricesAccountedFor = [...orderPriceStack, ...pricesForToken]
+      if (pricesAccountedFor.length !== possibleOrders.length) {
+        const tempPossibleOrders = [...possibleOrders]
+        pricesAccountedFor.forEach((price) => {
+          const index = tempPossibleOrders.indexOf(price)
+          tempPossibleOrders.splice(index, 1)
+        })
+
+        setOrderPriceStack(
+          [...tempPossibleOrders, ...orderPriceStack].sort((a, b) =>
+            BigNumber.from(a).lte(BigNumber.from(b)) ? -1 : 1
+          )
+        )
+      }
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemsInBag])
 
   return (
     <Card.Container asset={asset} selected={isSelected}>
@@ -110,7 +157,11 @@ export const CollectionAsset = ({
           <Card.SecondaryRow>
             <Card.SecondaryDetails>
               <Card.SecondaryInfo>
-                {notForSale ? '' : `${formatWeiToDecimal(asset.currentEthPrice)} ETH`}
+                {notForSale
+                  ? ''
+                  : asset.tokenType === TokenType.ERC1155
+                  ? `${formatWeiToDecimal(orderPriceStack[0])} ETH`
+                  : `${formatWeiToDecimal(asset.currentEthPrice)} ETH`}
               </Card.SecondaryInfo>
               {(asset.marketplace === Markets.NFTX || asset.marketplace === Markets.NFT20) && <Card.Pool />}
             </Card.SecondaryDetails>
@@ -124,12 +175,39 @@ export const CollectionAsset = ({
           selectedChildren={'Remove'}
           onClick={(e: MouseEvent) => {
             e.preventDefault()
-            addAssetToBag(asset)
+            if (asset.tokenType === TokenType.ERC1155) {
+              addAssetToBag({
+                ...asset,
+                currentEthPrice: orderPriceStack[0],
+                priceInfo: {
+                  ...asset.priceInfo,
+                  ETHPrice: orderPriceStack[0],
+                  basePrice: orderPriceStack[0],
+                },
+              })
+              !bagExpanded && !isMobile && toggleBag()
+              orderPriceStack.splice(0, 1)
+              if (orderPriceStack.length === 0) {
+                fetchNextPrice()
+              }
+            } else {
+              addAssetToBag(asset)
+            }
             !bagExpanded && !isMobile && toggleBag()
           }}
           onSelectedClick={(e: MouseEvent) => {
             e.preventDefault()
-            removeAssetFromBag(asset)
+            if (asset.tokenType === TokenType.ERC1155) {
+              removeAssetFromBag(
+                itemsInBag
+                  .filter((item) => item.asset.address === asset.address && item.asset.tokenId === asset.tokenId)
+                  .sort((a, b) =>
+                    BigNumber.from(a.asset.currentEthPrice).lte(BigNumber.from(b.asset.currentEthPrice)) ? 1 : -1
+                  )[0].asset
+              )
+            } else {
+              removeAssetFromBag(asset)
+            }
           }}
         >
           {'Buy now'}

@@ -73,6 +73,25 @@ export interface ActivityEventResponse {
   cursor?: string
 }
 
+export interface Order {
+  collectionAddress: Lowercase<string>
+  tokenId: string
+  price: string
+  currency: string
+  decimal: number
+  quantity: number
+  orderHash?: Lowercase<string>
+  status: string
+  createdAt: Date
+  startAt: Date
+  endAt: Date
+  marketplace: string
+  marketplaceUrl: string
+  maker?: Lowercase<string>
+  taker?: Lowercase<string>
+  auctionType?: string
+}
+
 export interface TokenRarity {
   rank: number
   score: number

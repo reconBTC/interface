@@ -45,7 +45,7 @@ export const Footer = styled.div`
 `
 export const TokenDetailsLayout = styled.div`
   display: flex;
-  gap: 60px;
+  gap: 80px;
   padding: 68px 20px;
   width: 100%;
   justify-content: center;

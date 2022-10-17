@@ -13,7 +13,6 @@ import useNativeCurrency from 'lib/hooks/useNativeCurrency'
 import { getTokenFilter } from 'lib/hooks/useTokenList/filtering'
 import { tokenComparator, useSortTokensByQuery } from 'lib/hooks/useTokenList/sorting'
 import { ChangeEvent, KeyboardEvent, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Edit } from 'react-feather'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import { FixedSizeList } from 'react-window'
 import { Text } from 'rebass'
@@ -21,10 +20,10 @@ import { useAllTokenBalances } from 'state/connection/hooks'
 import styled, { useTheme } from 'styled-components/macro'
 
 import { useAllTokens, useIsUserAddedToken, useSearchInactiveTokenLists, useToken } from '../../hooks/Tokens'
-import { ButtonText, CloseIcon, IconWrapper, ThemedText } from '../../theme'
+import { CloseIcon, ThemedText } from '../../theme'
 import { isAddress } from '../../utils'
 import Column from '../Column'
-import Row, { RowBetween, RowFixed } from '../Row'
+import Row, { RowBetween } from '../Row'
 import CommonBases from './CommonBases'
 import { CurrencyRow, formatAnalyticsEventProperties } from './CurrencyList'
 import CurrencyList from './CurrencyList'
@@ -37,16 +36,6 @@ const ContentWrapper = styled(Column)<{ redesignFlag?: boolean }>`
   position: relative;
 `
 
-const Footer = styled.div`
-  width: 100%;
-  border-radius: 20px;
-  padding: 20px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  background-color: ${({ theme }) => theme.deprecated_bg1};
-  border-top: 1px solid ${({ theme }) => theme.deprecated_bg2};
-`
-
 interface CurrencySearchProps {
   isOpen: boolean
   onDismiss: () => void
@@ -56,7 +45,6 @@ interface CurrencySearchProps {
   showCommonBases?: boolean
   showCurrencyAmount?: boolean
   disableNonToken?: boolean
-  showManageView: () => void
 }
 
 export function CurrencySearch({
@@ -68,7 +56,6 @@ export function CurrencySearch({
   disableNonToken,
   onDismiss,
   isOpen,
-  showManageView,
 }: CurrencySearchProps) {
   const redesignFlag = useRedesignFlag()
   const redesignFlagEnabled = redesignFlag === RedesignVariant.Enabled
@@ -107,11 +94,12 @@ export function CurrencySearch({
     return Object.values(allTokens).filter(getTokenFilter(debouncedQuery))
   }, [allTokens, debouncedQuery])
 
-  const [balances, balancesIsLoading] = useAllTokenBalances()
+  const [balances, balancesAreLoading] = useAllTokenBalances()
   const sortedTokens: Token[] = useMemo(
-    () => (!balancesIsLoading ? [...filteredTokens].sort(tokenComparator.bind(null, balances)) : []),
-    [balances, filteredTokens, balancesIsLoading]
+    () => (!balancesAreLoading ? [...filteredTokens].sort(tokenComparator.bind(null, balances)) : []),
+    [balances, filteredTokens, balancesAreLoading]
   )
+  const isLoading = Boolean(balancesAreLoading && !tokenLoaderTimerElapsed)
 
   const filteredSortedTokens = useSortTokensByQuery(debouncedQuery, sortedTokens)
 
@@ -241,7 +229,7 @@ export function CurrencySearch({
               )}
             />
           </Column>
-        ) : filteredSortedTokens?.length > 0 || filteredInactiveTokens?.length > 0 ? (
+        ) : filteredSortedTokens?.length > 0 || filteredInactiveTokens?.length > 0 || isLoading ? (
           <div style={{ flex: '1' }}>
             <AutoSizer disableWidth>
               {({ height }) => (
@@ -254,7 +242,7 @@ export function CurrencySearch({
                   selectedCurrency={selectedCurrency}
                   fixedListRef={fixedList}
                   showCurrencyAmount={showCurrencyAmount}
-                  isLoading={balancesIsLoading && !tokenLoaderTimerElapsed}
+                  isLoading={isLoading}
                   searchQuery={searchQuery}
                   isAddressSearch={isAddressSearch}
                 />
@@ -267,26 +255,6 @@ export function CurrencySearch({
               <Trans>No results found.</Trans>
             </ThemedText.DeprecatedMain>
           </Column>
-        )}
-        {!redesignFlagEnabled && (
-          <Footer>
-            <Row justify="center">
-              <ButtonText
-                onClick={showManageView}
-                color={theme.deprecated_primary1}
-                className="list-token-manage-button"
-              >
-                <RowFixed>
-                  <IconWrapper size="16px" marginRight="6px" stroke={theme.deprecated_primaryText1}>
-                    <Edit />
-                  </IconWrapper>
-                  <ThemedText.DeprecatedMain color={theme.deprecated_primaryText1}>
-                    <Trans>Manage Token Lists</Trans>
-                  </ThemedText.DeprecatedMain>
-                </RowFixed>
-              </ButtonText>
-            </Row>
-          </Footer>
         )}
       </Trace>
     </ContentWrapper>

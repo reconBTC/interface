@@ -17,16 +17,22 @@ import {
   useFiltersExpanded,
   useIsMobile,
 } from 'nft/hooks'
+import { useIsCollectionLoading } from 'nft/hooks/useIsCollectionLoading'
 import { AssetsFetcher } from 'nft/queries'
 import { DropDownOption, GenieCollection, UniformHeight, UniformHeights } from 'nft/types'
 import { getRarityStatus } from 'nft/utils/asset'
+import { pluralize } from 'nft/utils/roundAndPluralize'
+import { scrollToTop } from 'nft/utils/scrollToTop'
 import { applyFiltersFromURL, syncLocalFiltersWithURL } from 'nft/utils/urlParams'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import InfiniteScroll from 'react-infinite-scroll-component'
 import { useInfiniteQuery } from 'react-query'
 import { useLocation } from 'react-router-dom'
+import styled from 'styled-components/macro'
 
 import { CollectionAssetLoading } from './CollectionAssetLoading'
+import { marketPlaceItems } from './MarketplaceSelect'
+import { TraitChip } from './TraitChip'
 
 interface CollectionNftsProps {
   contractAddress: string
@@ -35,6 +41,17 @@ interface CollectionNftsProps {
 }
 
 const rarityStatusCache = new Map<string, boolean>()
+
+const ClearAllButton = styled.button`
+  color: ${({ theme }) => theme.textTertiary};
+  padding-left: 8px;
+  padding-right: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  background: none;
+`
 
 export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerified }: CollectionNftsProps) => {
   const traits = useCollectionFilters((state) => state.traits)
@@ -46,6 +63,12 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
   const setMarketCount = useCollectionFilters((state) => state.setMarketCount)
   const setSortBy = useCollectionFilters((state) => state.setSortBy)
   const buyNow = useCollectionFilters((state) => state.buyNow)
+  const setIsCollectionNftsLoading = useIsCollectionLoading((state) => state.setIsCollectionNftsLoading)
+  const removeTrait = useCollectionFilters((state) => state.removeTrait)
+  const removeMarket = useCollectionFilters((state) => state.removeMarket)
+  const reset = useCollectionFilters((state) => state.reset)
+  const setMin = useCollectionFilters((state) => state.setMinPrice)
+  const setMax = useCollectionFilters((state) => state.setMaxPrice)
 
   const debouncedMinPrice = useDebounce(minPrice, 500)
   const debouncedMaxPrice = useDebounce(maxPrice, 500)
@@ -114,6 +137,10 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
       refetchInterval: 5000,
     }
   )
+
+  useEffect(() => {
+    setIsCollectionNftsLoading(isLoading)
+  }, [isLoading, setIsCollectionNftsLoading])
 
   const [uniformHeight, setUniformHeight] = useState<UniformHeight>(UniformHeights.unset)
   const [currentTokenPlayingMedia, setCurrentTokenPlayingMedia] = useState<string | undefined>()
@@ -202,6 +229,18 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
 
   const hasNfts = collectionNfts && collectionNfts.length > 0
 
+  const minMaxPriceChipText: string | undefined = useMemo(() => {
+    if (debouncedMinPrice && debouncedMaxPrice) {
+      return `Price: ${debouncedMinPrice}-${debouncedMaxPrice} ETH`
+    } else if (debouncedMinPrice) {
+      return `Min. Price: ${debouncedMinPrice} ETH`
+    } else if (debouncedMaxPrice) {
+      return `Max Price: ${debouncedMaxPrice} ETH`
+    }
+
+    return undefined
+  }, [debouncedMinPrice, debouncedMaxPrice])
+
   useEffect(() => {
     const marketCount: any = {}
     collectionStats?.marketplaceCount?.forEach(({ marketplace, count }) => {
@@ -248,6 +287,52 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
             />
             <SortDropdown dropDownOptions={sortDropDownOptions} />
             <CollectionSearch />
+          </Row>
+          <Row paddingTop="12" gap="8" flexWrap="wrap">
+            {markets.map((market) => (
+              <TraitChip
+                key={market}
+                value={marketPlaceItems[market as keyof typeof marketPlaceItems]}
+                onClick={() => {
+                  scrollToTop()
+                  removeMarket(market)
+                }}
+              />
+            ))}
+            {traits.map((trait) => (
+              <TraitChip
+                key={trait.trait_value}
+                value={
+                  trait.trait_type === 'Number of traits'
+                    ? `${trait.trait_value} trait${pluralize(Number(trait.trait_value))}`
+                    : `${trait.trait_type}: ${trait.trait_value}`
+                }
+                onClick={() => {
+                  scrollToTop()
+                  removeTrait(trait)
+                }}
+              />
+            ))}
+            {minMaxPriceChipText && (
+              <TraitChip
+                value={minMaxPriceChipText}
+                onClick={() => {
+                  scrollToTop()
+                  setMin('')
+                  setMax('')
+                }}
+              />
+            )}
+            {traits.length || markets.length > 0 || minMaxPriceChipText ? (
+              <ClearAllButton
+                onClick={() => {
+                  reset()
+                  scrollToTop()
+                }}
+              >
+                Clear All
+              </ClearAllButton>
+            ) : null}
           </Row>
         </Box>
       </AnimatedBox>

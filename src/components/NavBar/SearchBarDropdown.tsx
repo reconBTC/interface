@@ -1,4 +1,6 @@
 import { Trans } from '@lingui/macro'
+import { sendAnalyticsEvent } from 'analytics'
+import { EventName } from 'analytics/constants'
 import { NftVariant, useNftFlag } from 'featureFlags/flags/nft'
 import { Box } from 'nft/components/Box'
 import { Column, Row } from 'nft/components/Flex'
@@ -58,6 +60,15 @@ export const SearchBarDropdownSection = ({
               isHovered={hoveredIndex === index + startingIndex}
               setHoveredIndex={setHoveredIndex}
               toggleOpen={toggleOpen}
+              traceEvent={() =>
+                sendAnalyticsEvent(EventName.NAVBAR_SEARCH_EXITED, {
+                  position: index,
+                  selected_type: 'collection',
+                  suggestion_count: suggestions.length,
+                  selected_name: suggestion.name,
+                  selected_address: suggestion.address,
+                })
+              }
               index={index + startingIndex}
             />
           ) : (
@@ -67,6 +78,15 @@ export const SearchBarDropdownSection = ({
               isHovered={hoveredIndex === index + startingIndex}
               setHoveredIndex={setHoveredIndex}
               toggleOpen={toggleOpen}
+              traceEvent={() =>
+                sendAnalyticsEvent(EventName.NAVBAR_SEARCH_EXITED, {
+                  position: index,
+                  selected_type: 'token',
+                  suggestion_count: suggestions.length,
+                  selected_name: suggestion.name,
+                  selected_address: suggestion.address,
+                })
+              }
               index={index + startingIndex}
             />
           )
@@ -86,45 +106,13 @@ interface SearchBarDropdownProps {
 
 export const SearchBarDropdown = ({ toggleOpen, tokens, collections, hasInput, isLoading }: SearchBarDropdownProps) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(0)
-  const searchHistory = useSearchHistory((state: { history: (FungibleToken | GenieCollection)[] }) => state.history)
+  const { history: searchHistory, updateItem: updateSearchHistory } = useSearchHistory()
   const shortenedHistory = useMemo(() => searchHistory.slice(0, 2), [searchHistory])
   const { pathname } = useLocation()
   const isNFTPage = pathname.includes('/nfts')
   const isTokenPage = pathname.includes('/tokens')
   const phase1Flag = useNftFlag()
   const [resultsState, setResultsState] = useState<ReactNode>()
-
-  const tokenSearchResults =
-    tokens.length > 0 ? (
-      <SearchBarDropdownSection
-        hoveredIndex={hoveredIndex}
-        startingIndex={isNFTPage ? collections.length : 0}
-        setHoveredIndex={setHoveredIndex}
-        toggleOpen={toggleOpen}
-        suggestions={tokens}
-        header={<Trans>Tokens</Trans>}
-      />
-    ) : (
-      <Box className={styles.notFoundContainer}>
-        <Trans>No tokens found.</Trans>
-      </Box>
-    )
-
-  const collectionSearchResults =
-    phase1Flag === NftVariant.Enabled ? (
-      collections.length > 0 ? (
-        <SearchBarDropdownSection
-          hoveredIndex={hoveredIndex}
-          startingIndex={isNFTPage ? 0 : tokens.length}
-          setHoveredIndex={setHoveredIndex}
-          toggleOpen={toggleOpen}
-          suggestions={collections}
-          header={<Trans>NFT Collections</Trans>}
-        />
-      ) : (
-        <Box className={styles.notFoundContainer}>No NFT collections found.</Box>
-      )
-    ) : null
 
   const { data: trendingCollectionResults, isLoading: trendingCollectionsAreLoading } = useQuery(
     ['trendingCollections', 'eth', 'twenty_four_hours'],
@@ -158,9 +146,11 @@ export const SearchBarDropdown = ({ toggleOpen, tokens, collections, hasInput, i
       refetchOnReconnect: false,
     }
   )
+  useEffect(() => {
+    trendingTokenResults?.forEach(updateSearchHistory)
+  }, [trendingTokenResults, updateSearchHistory])
 
   const trendingTokensLength = phase1Flag === NftVariant.Enabled ? (isTokenPage ? 3 : 2) : 4
-
   const trendingTokens = useMemo(
     () =>
       trendingTokenResults
@@ -204,6 +194,38 @@ export const SearchBarDropdown = ({ toggleOpen, tokens, collections, hasInput, i
 
   useEffect(() => {
     if (!isLoading) {
+      const tokenSearchResults =
+        tokens.length > 0 ? (
+          <SearchBarDropdownSection
+            hoveredIndex={hoveredIndex}
+            startingIndex={isNFTPage ? collections.length : 0}
+            setHoveredIndex={setHoveredIndex}
+            toggleOpen={toggleOpen}
+            suggestions={tokens}
+            header={<Trans>Tokens</Trans>}
+          />
+        ) : (
+          <Box className={styles.notFoundContainer}>
+            <Trans>No tokens found.</Trans>
+          </Box>
+        )
+
+      const collectionSearchResults =
+        phase1Flag === NftVariant.Enabled ? (
+          collections.length > 0 ? (
+            <SearchBarDropdownSection
+              hoveredIndex={hoveredIndex}
+              startingIndex={isNFTPage ? 0 : tokens.length}
+              setHoveredIndex={setHoveredIndex}
+              toggleOpen={toggleOpen}
+              suggestions={collections}
+              header={<Trans>NFT Collections</Trans>}
+            />
+          ) : (
+            <Box className={styles.notFoundContainer}>No NFT collections found.</Box>
+          )
+        ) : null
+
       const currentState = () =>
         hasInput ? (
           // Empty or Up to 8 combined tokens and nfts
@@ -263,7 +285,6 @@ export const SearchBarDropdown = ({ toggleOpen, tokens, collections, hasInput, i
 
       setResultsState(currentState)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isLoading,
     tokens,

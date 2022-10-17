@@ -1,19 +1,21 @@
 import { Trans } from '@lingui/macro'
-import { NativeCurrency, Token } from '@uniswap/sdk-core'
+import { Currency, NativeCurrency, Token } from '@uniswap/sdk-core'
 import { ParentSize } from '@visx/responsive'
 import CurrencyLogo from 'components/CurrencyLogo'
 import { VerifiedIcon } from 'components/TokenSafety/TokenSafetyIcon'
 import { getChainInfo } from 'constants/chainInfo'
 import { checkWarning } from 'constants/tokenSafety'
 import { FavoriteTokensVariant, useFavoriteTokensFlag } from 'featureFlags/flags/favoriteTokens'
-import { SingleTokenData, useTokenPricesCached } from 'graphql/data/Token'
+import { PriceDurations, PricePoint, SingleTokenData } from 'graphql/data/Token'
 import { TopToken } from 'graphql/data/TopTokens'
-import { CHAIN_NAME_TO_CHAIN_ID } from 'graphql/data/util'
-import useCurrencyLogoURIs, { getTokenLogoURI } from 'lib/hooks/useCurrencyLogoURIs'
+import { CHAIN_NAME_TO_CHAIN_ID, TimePeriod } from 'graphql/data/util'
+import { useAtomValue } from 'jotai/utils'
+import useCurrencyLogoURIs from 'lib/hooks/useCurrencyLogoURIs'
+import { useMemo } from 'react'
 import styled from 'styled-components/macro'
-import { isAddress } from 'utils'
+import { textFadeIn } from 'theme/animations'
 
-import { useIsFavorited, useToggleFavorite } from '../state'
+import { filterTimeAtom, useIsFavorited, useToggleFavorite } from '../state'
 import { ClickFavorited, FavoriteIcon, L2NetworkLogo, LogoContainer } from '../TokenTable/TokenRow'
 import PriceChart from './PriceChart'
 import ShareButton from './ShareButton'
@@ -42,6 +44,7 @@ export const TokenNameCell = styled.div`
   font-size: 20px;
   line-height: 28px;
   align-items: center;
+  ${textFadeIn}
 `
 const TokenSymbol = styled.span`
   text-transform: uppercase;
@@ -57,48 +60,73 @@ export function useTokenLogoURI(
   token: NonNullable<SingleTokenData> | NonNullable<TopToken>,
   nativeCurrency?: Token | NativeCurrency
 ) {
-  const checksummedAddress = isAddress(token.address)
   const chainId = CHAIN_NAME_TO_CHAIN_ID[token.chain]
-  return (
-    useCurrencyLogoURIs(nativeCurrency)[0] ??
-    (checksummedAddress && getTokenLogoURI(checksummedAddress, chainId)) ??
-    token.project?.logoUrl
-  )
+  return [
+    ...useCurrencyLogoURIs(nativeCurrency),
+    ...useCurrencyLogoURIs({ ...token, chainId }),
+    token.project?.logoUrl,
+  ][0]
 }
 
 export default function ChartSection({
   token,
+  currency,
   nativeCurrency,
+  prices,
 }: {
   token: NonNullable<SingleTokenData>
+  currency?: Currency | null
   nativeCurrency?: Token | NativeCurrency
+  prices: PriceDurations
 }) {
   const isFavorited = useIsFavorited(token.address)
   const toggleFavorite = useToggleFavorite(token.address)
   const chainId = CHAIN_NAME_TO_CHAIN_ID[token.chain]
   const L2Icon = getChainInfo(chainId).circleLogoUrl
   const warning = checkWarning(token.address ?? '')
-
-  const { prices } = useTokenPricesCached(token)
+  const timePeriod = useAtomValue(filterTimeAtom)
 
   const logoSrc = useTokenLogoURI(token, nativeCurrency)
+
+  // Backend doesn't always return latest price point for every duration.
+  // Thus we need to manually determine latest price point available, and
+  // append it to the prices list for every duration.
+  useMemo(() => {
+    let latestPricePoint: PricePoint = { value: 0, timestamp: 0 }
+    let latestPricePointTimePeriod: TimePeriod
+    Object.keys(prices).forEach((key) => {
+      const latestPricePointForTimePeriod = prices[key as unknown as TimePeriod]?.slice(-1)[0]
+      if (latestPricePointForTimePeriod && latestPricePointForTimePeriod.timestamp > latestPricePoint.timestamp) {
+        latestPricePoint = latestPricePointForTimePeriod
+        latestPricePointTimePeriod = key as unknown as TimePeriod
+      }
+    })
+    Object.keys(prices).forEach((key) => {
+      if ((key as unknown as TimePeriod) !== latestPricePointTimePeriod) {
+        prices[key as unknown as TimePeriod]?.push(latestPricePoint)
+      }
+    })
+  }, [prices])
 
   return (
     <ChartHeader>
       <TokenInfoContainer>
         <TokenNameCell>
           <LogoContainer>
-            <CurrencyLogo src={logoSrc} size={'32px'} symbol={nativeCurrency?.symbol ?? token.symbol} />
+            <CurrencyLogo
+              src={logoSrc}
+              size={'32px'}
+              symbol={nativeCurrency?.symbol ?? token.symbol}
+              currency={nativeCurrency ? undefined : currency}
+            />
             <L2NetworkLogo networkUrl={L2Icon} size={'16px'} />
           </LogoContainer>
           {nativeCurrency?.name ?? token.name ?? <Trans>Name not found</Trans>}
           <TokenSymbol>{nativeCurrency?.symbol ?? token.symbol ?? <Trans>Symbol not found</Trans>}</TokenSymbol>
-          {!warning && <VerifiedIcon size="20px" />}
+          {!warning && <VerifiedIcon size="16px" />}
         </TokenNameCell>
         <TokenActions>
-          {token.name && token.symbol && token.address && (
-            <ShareButton tokenName={token.name} tokenSymbol={token.symbol} tokenAddress={token.address} />
-          )}
+          {token.name && token.symbol && token.address && <ShareButton token={token} isNative={!!nativeCurrency} />}
           {useFavoriteTokensFlag() === FavoriteTokensVariant.Enabled && (
             <ClickFavorited onClick={toggleFavorite}>
               <FavoriteIcon isFavorited={isFavorited} />
@@ -108,7 +136,7 @@ export default function ChartSection({
       </TokenInfoContainer>
       <ChartContainer>
         <ParentSize>
-          {({ width, height }) => prices && <PriceChart prices={prices} width={width} height={height} />}
+          {({ width, height }) => prices && <PriceChart prices={prices[timePeriod]} width={width} height={height} />}
         </ParentSize>
       </ChartContainer>
     </ChartHeader>

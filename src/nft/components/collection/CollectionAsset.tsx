@@ -160,8 +160,8 @@ export const CollectionAsset = ({
                 {notForSale
                   ? ''
                   : asset.tokenType === TokenType.ERC1155
-                  ? `${formatWeiToDecimal(orderPriceStack[0])} ETH`
-                  : `${formatWeiToDecimal(asset.currentEthPrice)} ETH`}
+                  ? `${formatWeiToDecimal(orderPriceStack[0], true)} ETH`
+                  : `${formatWeiToDecimal(asset.currentEthPrice, true)} ETH`}
               </Card.SecondaryInfo>
               {(asset.marketplace === Markets.NFTX || asset.marketplace === Markets.NFT20) && <Card.Pool />}
             </Card.SecondaryDetails>

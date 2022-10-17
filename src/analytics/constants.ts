@@ -8,9 +8,12 @@ export enum EventName {
   APP_LOADED = 'Application Loaded',
   APPROVE_TOKEN_TXN_SUBMITTED = 'Approve Token Transaction Submitted',
   CONNECT_WALLET_BUTTON_CLICKED = 'Connect Wallet Button Clicked',
+  EXPLORE_BANNER_CLICKED = 'Explore Banner Clicked',
   EXPLORE_SEARCH_SELECTED = 'Explore Search Selected',
   EXPLORE_TOKEN_ROW_CLICKED = 'Explore Token Row Clicked',
   PAGE_VIEWED = 'Page Viewed',
+  NAVBAR_SEARCH_SELECTED = 'Navbar Search Selected',
+  NAVBAR_SEARCH_EXITED = 'Navbar Search Exited',
   SWAP_AUTOROUTER_VISUALIZATION_EXPANDED = 'Swap Autorouter Visualization Expanded',
   SWAP_DETAILS_EXPANDED = 'Swap Details Expanded',
   SWAP_MAX_TOKEN_AMOUNT_SELECTED = 'Swap Max Token Amount Selected',
@@ -62,8 +65,6 @@ export enum WALLET_CONNECTION_RESULT {
   FAILED = 'Failed',
 }
 
-export const NATIVE_CHAIN_ID = 'NATIVE'
-
 export enum SWAP_PRICE_UPDATE_USER_RESPONSE {
   ACCEPTED = 'Accepted',
   REJECTED = 'Rejected',
@@ -73,6 +74,7 @@ export enum SWAP_PRICE_UPDATE_USER_RESPONSE {
  * Known pages in the app. Highest order context.
  */
 export enum PageName {
+  TOKEN_DETAILS_PAGE = 'token-details',
   TOKENS_PAGE = 'tokens-page',
   POOL_PAGE = 'pool-page',
   SWAP_PAGE = 'swap-page',
@@ -88,6 +90,7 @@ export enum PageName {
 export enum SectionName {
   CURRENCY_INPUT_PANEL = 'swap-currency-input',
   CURRENCY_OUTPUT_PANEL = 'swap-currency-output',
+  WIDGET = 'widget',
   // alphabetize additional section names.
 }
 
@@ -107,9 +110,11 @@ export enum ElementName {
   COMMON_BASES_CURRENCY_BUTTON = 'common-bases-currency-button',
   CONFIRM_SWAP_BUTTON = 'confirm-swap-or-send',
   CONNECT_WALLET_BUTTON = 'connect-wallet-button',
+  EXPLORE_BANNER = 'explore-banner',
   EXPLORE_SEARCH_INPUT = 'explore_search_input',
   IMPORT_TOKEN_BUTTON = 'import-token-button',
   MAX_TOKEN_AMOUNT_BUTTON = 'max-token-amount-button',
+  NAVBAR_SEARCH_INPUT = 'navbar-search-input',
   PRICE_UPDATE_ACCEPT_BUTTON = 'price-update-accept-button',
   SWAP_BUTTON = 'swap-button',
   SWAP_DETAILS_DROPDOWN = 'swap-details-dropdown',
@@ -126,6 +131,7 @@ export enum ElementName {
  */
 export enum Event {
   onClick = 'onClick',
+  onFocus = 'onFocus',
   onKeyPress = 'onKeyPress',
   onSelect = 'onSelect',
   // alphabetize additional events.

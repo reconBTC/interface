@@ -11,7 +11,7 @@ const CarouselCardContainer = styled.div`
   background-color: ${({ theme }) => theme.backgroundSurface};
   border-radius: 20px;
   outline: 1px solid ${({ theme }) => theme.backgroundOutline};
-  width: 456px;
+  width: 100%;
   cursor: pointer;
   overflow: hidden;
 
@@ -84,18 +84,33 @@ const CardBottomContainer = styled.div`
   display: grid;
   grid-template-columns: auto auto auto;
   row-gap: 16px;
+  column-gap: 20px;
   padding-right: 28px;
   padding-left: 28px;
   padding-bottom: 20px;
   justify-content: space-between;
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.lg}px`}) {
+    row-gap: 12px;
+  }
 `
 
-const HeaderRow = styled(ThemedText.SubHeader)`
+const HeaderRow = styled.div`
   color: ${({ theme }) => theme.userThemeColor};
+  font-size: 16px;
   line-height: 24px;
+  font-weight: 500;
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.lg}px`}) {
+    row-gap: 12px;
+    font-size: 14px;
+    line-height: 20px;
+  }
 `
 
-const TableElement = styled(ThemedText.SubHeaderSmall)`
+const TableElement = styled.div`
+  color: ${({ theme }) => theme.textSecondary};
+  font-size: 14px;
   font-weight: 400;
   line-height: 20px;
 `

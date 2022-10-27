@@ -123,14 +123,11 @@ const CollectionTable = ({ data }: { data: CollectionTableColumn[] }) => {
         },
       },
     ],
-    []
+    [floorChangeSort, floorSort, volumeChangeSort, volumeSort]
   )
   return (
     <>
-      <Table
-        hiddenColumns={[ColumnHeaders.Volume, ColumnHeaders.Owners, ColumnHeaders.Items, ColumnHeaders.Sales]}
-        {...{ data, columns }}
-      />
+      <Table {...{ data, columns }} />
     </>
   )
 }

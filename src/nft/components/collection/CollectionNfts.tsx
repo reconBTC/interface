@@ -62,7 +62,21 @@ const rarityStatusCache = new Map<string, boolean>()
 
 const ActionsContainer = styled.div`
   display: flex;
+  gap: 10px;
+  width: 100%;
   justify-content: space-between;
+  overflow: hidden;
+`
+
+const ActionsSubContainer = styled.div`
+  display: flex;
+  gap: 12px;
+  flex: 1;
+  min-width: 0px;
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
+    gap: 10px;
+  }
 `
 
 const ClearAllButton = styled.button`
@@ -98,8 +112,14 @@ const SweepButton = styled.div<{ toggled: boolean; disabled?: boolean }>`
     }) => `${duration.fast} background-color ${timing.in}`};
   }
 
-  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
     padding: 10px 12px 10px 12px;
+  }
+`
+
+const SweepText = styled(ThemedText.BodyPrimary)`
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
+    display: none;
   }
 `
 
@@ -415,7 +435,7 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
       <AnimatedBox position="sticky" top="72" width="full" zIndex="3" marginBottom="20">
         <Box backgroundColor="backgroundBackdrop" width="full" padding="16">
           <ActionsContainer>
-            <Row gap="12">
+            <ActionsSubContainer>
               <TraceEvent
                 events={[Event.onClick]}
                 element={ElementName.NFT_FILTER_BUTTON}
@@ -434,7 +454,7 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
                 <SortDropdown dropDownOptions={sortDropDownOptions} />
               </HideOnMobileContainer>
               <CollectionSearch />
-            </Row>
+            </ActionsSubContainer>
             {!hasErc1155s ? (
               isLoading ? (
                 <LoadingButton />
@@ -452,17 +472,15 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
                   }}
                 >
                   <SweepIcon width="24px" height="24px" />
-                  <HideOnMobileContainer>
-                    <ThemedText.BodyPrimary
-                      fontWeight={600}
-                      color={sweepIsOpen && buyNow ? theme.white : theme.textPrimary}
-                      lineHeight="20px"
-                      marginTop="2px"
-                      marginBottom="2px"
-                    >
-                      Sweep
-                    </ThemedText.BodyPrimary>
-                  </HideOnMobileContainer>
+                  <SweepText
+                    fontWeight={600}
+                    color={sweepIsOpen && buyNow ? theme.white : theme.textPrimary}
+                    lineHeight="20px"
+                    marginTop="2px"
+                    marginBottom="2px"
+                  >
+                    Sweep
+                  </SweepText>
                 </SweepButton>
               )
             ) : null}

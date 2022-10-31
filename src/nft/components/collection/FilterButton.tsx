@@ -6,6 +6,13 @@ import { FilterIcon } from 'nft/components/icons'
 import { useCollectionFilters, useIsCollectionLoading, useWalletCollections } from 'nft/hooks'
 import { putCommas } from 'nft/utils/putCommas'
 import { useLocation } from 'react-router-dom'
+import styled from 'styled-components/macro'
+
+const HideOnMediumBreakpoint = styled.div`
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
+    display: none;
+  }
+`
 
 export const FilterButton = ({
   onClick,
@@ -39,6 +46,8 @@ export const FilterButton = ({
     : minPrice || maxPrice || minRarity || maxRarity || traits.length || markets.length || buyNow
   return (
     <Box
+      display="flex"
+      gap="8"
       className={
         isCollectionNftsLoading
           ? styles.filterButtonLoading
@@ -71,20 +80,22 @@ export const FilterButton = ({
         </>
       )}
 
-      {!isMobile && !isFiltersExpanded && 'Filter'}
+      {!isFiltersExpanded && <HideOnMediumBreakpoint>Filters</HideOnMediumBreakpoint>}
 
-      {showFilterBadge && !isMobile ? (
-        <Box display="inline-block" position="relative">
-          {!isFiltersExpanded && (
-            <Box as="span" position="absolute" left="4" style={{ top: '5px', fontSize: '8px' }}>
-              •
+      {showFilterBadge && (
+        <HideOnMediumBreakpoint>
+          <Box display="inline-block" position="relative">
+            {!isFiltersExpanded && (
+              <Box as="span" position="absolute" left="4" style={{ top: '5px', fontSize: '8px' }}>
+                •
+              </Box>
+            )}
+            <Box paddingLeft={!isFiltersExpanded ? '12' : '2'}>
+              {collectionCount > 0 ? putCommas(collectionCount) : 0} results
             </Box>
-          )}
-          <Box paddingLeft={!isFiltersExpanded ? '12' : '2'}>
-            {collectionCount > 0 ? putCommas(collectionCount) : 0} results
           </Box>
-        </Box>
-      ) : null}
+        </HideOnMediumBreakpoint>
+      )}
     </Box>
   )
 }

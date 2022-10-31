@@ -97,6 +97,10 @@ const SweepButton = styled.div<{ toggled: boolean; disabled?: boolean }>`
       },
     }) => `${duration.fast} background-color ${timing.in}`};
   }
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
+    padding: 10px 12px 10px 12px;
+  }
 `
 
 export const LoadingButton = styled.div`
@@ -113,6 +117,14 @@ export const LoadingButton = styled.div`
   );
   will-change: background-position;
   background-size: 400%;
+`
+
+export const HideOnMobileContainer = styled.div`
+  width: max-content;
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
+    display: none;
+  }
 `
 
 const DEFAULT_ASSET_QUERY_AMOUNT = 25
@@ -418,7 +430,9 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
                   collectionCount={collectionNfts?.[0]?.totalCount ?? 0}
                 />
               </TraceEvent>
-              <SortDropdown dropDownOptions={sortDropDownOptions} />
+              <HideOnMobileContainer>
+                <SortDropdown dropDownOptions={sortDropDownOptions} />
+              </HideOnMobileContainer>
               <CollectionSearch />
             </Row>
             {!hasErc1155s ? (
@@ -438,15 +452,17 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
                   }}
                 >
                   <SweepIcon width="24px" height="24px" />
-                  <ThemedText.BodyPrimary
-                    fontWeight={600}
-                    color={sweepIsOpen && buyNow ? theme.white : theme.textPrimary}
-                    lineHeight="20px"
-                    marginTop="2px"
-                    marginBottom="2px"
-                  >
-                    Sweep
-                  </ThemedText.BodyPrimary>
+                  <HideOnMobileContainer>
+                    <ThemedText.BodyPrimary
+                      fontWeight={600}
+                      color={sweepIsOpen && buyNow ? theme.white : theme.textPrimary}
+                      lineHeight="20px"
+                      marginTop="2px"
+                      marginBottom="2px"
+                    >
+                      Sweep
+                    </ThemedText.BodyPrimary>
+                  </HideOnMobileContainer>
                 </SweepButton>
               )
             ) : null}

@@ -4,7 +4,7 @@ import { Trace } from 'analytics/Trace'
 import { MobileHoverBag } from 'nft/components/bag/MobileHoverBag'
 import { AnimatedBox, Box } from 'nft/components/Box'
 import { Activity, ActivitySwitcher, CollectionNfts, CollectionStats, Filters } from 'nft/components/collection'
-import { Column, Row } from 'nft/components/Flex'
+import { Column } from 'nft/components/Flex'
 import { useBag, useCollectionFilters, useFiltersExpanded, useIsCollectionLoading, useIsMobile } from 'nft/hooks'
 import * as styles from 'nft/pages/collection/index.css'
 import { CollectionStatsFetcher } from 'nft/queries'
@@ -13,6 +13,32 @@ import { useEffect } from 'react'
 import { useQuery } from 'react-query'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useSpring } from 'react-spring'
+import styled from 'styled-components/macro'
+
+const CollectionAssetsContainer = styled.div`
+  position: relative;
+  padding-right: 48px;
+  padding-left: 48px;
+  display: flex;
+  align-items: flex-start;
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+`
+
+const CollectionStatsContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  padding-right: 48px;
+  padding-left: 48px;
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+`
 
 const FILTER_WIDTH = 332
 const BAG_WIDTH = 324
@@ -90,7 +116,7 @@ const Collection = () => {
                   )}
                 </Box>
               </Box>
-              <Column paddingX="48">
+              <CollectionStatsContainer>
                 {(isLoading || collectionStats !== undefined) && (
                   <CollectionStats stats={collectionStats || ({} as GenieCollection)} isMobile={isMobile} />
                 )}
@@ -102,8 +128,8 @@ const Collection = () => {
                     toggleActivity()
                   }}
                 />
-              </Column>
-              <Row alignItems="flex-start" position="relative" paddingX="48">
+              </CollectionStatsContainer>
+              <CollectionAssetsContainer>
                 <Box position="sticky" top="72" width="0">
                   {isFiltersExpanded && <Filters traits={collectionStats?.traits ?? []} />}
                 </Box>
@@ -132,7 +158,7 @@ const Collection = () => {
                         />
                       )}
                 </AnimatedBox>
-              </Row>
+              </CollectionAssetsContainer>
             </>
           ) : (
             // TODO: Put no collection asset page here

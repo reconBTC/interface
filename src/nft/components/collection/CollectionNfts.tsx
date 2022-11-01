@@ -447,7 +447,6 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
                   isMobile={isMobile}
                   isFiltersExpanded={isFiltersExpanded}
                   onClick={() => setFiltersExpanded(!isFiltersExpanded)}
-                  collectionCount={collectionNfts?.[0]?.totalCount ?? 0}
                 />
               </TraceEvent>
               <HideOnMobileContainer>

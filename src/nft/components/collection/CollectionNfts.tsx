@@ -13,9 +13,10 @@ import { CollectionSearch, FilterButton } from 'nft/components/collection'
 import { CollectionAsset } from 'nft/components/collection/CollectionAsset'
 import * as styles from 'nft/components/collection/CollectionNfts.css'
 import { SortDropdown } from 'nft/components/common/SortDropdown'
-import { Center, Row } from 'nft/components/Flex'
+import { Center, Column, Row } from 'nft/components/Flex'
 import { NonRarityIcon, RarityIcon, SweepIcon } from 'nft/components/icons'
 import { bodySmall, buttonTextMedium, headlineMedium } from 'nft/css/common.css'
+import { loadingAsset } from 'nft/css/loading.css'
 import { vars } from 'nft/css/sprinkles.css'
 import {
   CollectionFilters,
@@ -47,11 +48,6 @@ import { marketPlaceItems } from './MarketplaceSelect'
 import { Sweep } from './Sweep'
 import { TraitChip } from './TraitChip'
 
-const EmptyCollectionWrapper = styled.div`
-  display: block;
-  textalign: center;
-`
-
 interface CollectionNftsProps {
   contractAddress: string
   collectionStats: GenieCollection
@@ -77,6 +73,11 @@ const ActionsSubContainer = styled.div`
   @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
     gap: 10px;
   }
+`
+
+const EmptyCollectionWrapper = styled.div`
+  display: block;
+  textalign: center;
 `
 
 const ClearAllButton = styled.button`
@@ -147,7 +148,32 @@ export const HideOnMobileContainer = styled.div`
   }
 `
 
-const DEFAULT_ASSET_QUERY_AMOUNT = 25
+export const DEFAULT_ASSET_QUERY_AMOUNT = 25
+
+const loadingAssets = <>{new Array(DEFAULT_ASSET_QUERY_AMOUNT).fill(<CollectionAssetLoading />)}</>
+
+export const CollectionNftsLoading = () => (
+  <Box width="full" className={styles.assetList}>
+    {loadingAssets}
+  </Box>
+)
+
+export const CollectionNftsAndMenuLoading = () => (
+  <Column alignItems="flex-start" position="relative" width="full">
+    <Row marginY="12" gap="12">
+      <Box className={loadingAsset} borderRadius="12" width={{ sm: '44', md: '100' }} height="44" />
+      <Box
+        className={loadingAsset}
+        borderRadius="12"
+        height="44"
+        display={{ sm: 'none', md: 'flex' }}
+        style={{ width: '220px' }}
+      />
+      <Box className={loadingAsset} borderRadius="12" height="44" width={{ sm: '276', md: '332' }} />
+    </Row>
+    <CollectionNftsLoading />
+  </Column>
+)
 
 export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerified }: CollectionNftsProps) => {
   const { chainId } = useWeb3React()
@@ -298,7 +324,6 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
     setIsCollectionNftsLoading(wrappedLoadingState)
   }, [wrappedLoadingState, setIsCollectionNftsLoading])
 
-  const loadingAssets = useMemo(() => <>{new Array(DEFAULT_ASSET_QUERY_AMOUNT).fill(<CollectionAssetLoading />)}</>, [])
   const hasRarity = getRarityStatus(rarityStatusCache, collectionStats?.address, collectionNfts)
 
   const sortDropDownOptions: DropDownOption[] = useMemo(
@@ -548,16 +573,14 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
       <InfiniteScroll
         next={() => (isNftGraphQl ? loadNext(DEFAULT_ASSET_QUERY_AMOUNT) : fetchNextPage())}
         hasMore={wrappedHasNext}
-        loader={wrappedHasNext ? loadingAssets : null}
+        loader={wrappedHasNext && hasNfts ? loadingAssets : null}
         dataLength={collectionNfts?.length ?? 0}
         style={{ overflow: 'unset' }}
         className={hasNfts || wrappedLoadingState ? styles.assetList : undefined}
       >
         {hasNfts ? (
           Nfts
-        ) : wrappedLoadingState ? (
-          loadingAssets
-        ) : (
+        ) : collectionNfts?.length === 0 ? (
           <Center width="full" color="textSecondary" style={{ height: '60vh' }}>
             <EmptyCollectionWrapper>
               <p className={headlineMedium}>No NFTS found</p>
@@ -566,6 +589,10 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
               </Box>
             </EmptyCollectionWrapper>
           </Center>
+        ) : isNftGraphQl ? (
+          <CollectionNftsLoading />
+        ) : (
+          loadingAssets
         )}
       </InfiniteScroll>
     </>

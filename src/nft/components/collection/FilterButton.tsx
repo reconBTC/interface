@@ -41,8 +41,7 @@ export const FilterButton = ({
       height="44"
       whiteSpace="nowrap"
     >
-      <FilterIcon style={{ marginBottom: '-4px', paddingRight: `${!isFiltersExpanded ? '6px' : '0px'}` }} />
-
+      <FilterIcon />
       <HideOnMediumBreakpoint>
         <ThemedText.SubHeader>Filter</ThemedText.SubHeader>
       </HideOnMediumBreakpoint>

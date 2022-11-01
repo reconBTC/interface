@@ -92,20 +92,41 @@ const ClearAllButton = styled.button`
 `
 
 const SweepButton = styled.div<{ toggled: boolean; disabled?: boolean }>`
-  display: flex;
-  gap: 8px;
+  position: relative;
   border: none;
   border-radius: 12px;
   padding: 10px 18px 10px 12px;
   cursor: ${({ disabled }) => (disabled ? 'auto' : 'pointer')};
   color: ${({ toggled, disabled, theme }) => (toggled && !disabled ? theme.white : theme.textPrimary)};
+  opacity: ${({ disabled }) => (disabled ? 0.4 : 1)};
+  overflow: hidden;
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
+    padding: 10px 12px 10px 12px;
+  }
+`
+
+const SweepTextContainer = styled.div`
+  position: relative;
+  display: flex;
+  gap: 8px;
+  z-index: 1;
+  pointer-events: none;
+`
+
+const SweepBackgroundContainer = styled.div<{ toggled: boolean; disabled?: boolean }>`
+  position: absolute;
+  top: 0px;
+  bottom: 0px;
+  left: 0px;
+  right: 0px;
+  z-index: 0;
   background: ${({ theme, toggled, disabled }) =>
     !disabled && toggled
       ? 'radial-gradient(101.8% 4091.31% at 0% 0%, #4673FA 0%, #9646FA 100%)'
       : theme.backgroundInteractive};
-  opacity: ${({ disabled }) => (disabled ? 0.4 : 1)};
   :hover {
-    background-color: ${({ theme }) => theme.hoverState};
+    opacity: ${({ theme }) => theme.opacity.hover};
     transition: ${({
       theme: {
         transition: { duration, timing },
@@ -113,8 +134,14 @@ const SweepButton = styled.div<{ toggled: boolean; disabled?: boolean }>`
     }) => `${duration.fast} background-color ${timing.in}`};
   }
 
-  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
-    padding: 10px 12px 10px 12px;
+  :active {
+    opacity: ${({ theme }) => theme.opacity.click};
+    transition: ${({
+      theme: {
+        transition: { duration, timing },
+      },
+    }) => `${duration.fast} background-color ${timing.in}`};
+  }
   }
 `
 
@@ -495,16 +522,19 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
                     setSweepOpen(!sweepIsOpen)
                   }}
                 >
-                  <SweepIcon width="24px" height="24px" />
-                  <SweepText
-                    fontWeight={600}
-                    color={sweepIsOpen && buyNow ? theme.white : theme.textPrimary}
-                    lineHeight="20px"
-                    marginTop="2px"
-                    marginBottom="2px"
-                  >
-                    Sweep
-                  </SweepText>
+                  <SweepTextContainer>
+                    <SweepIcon width="24px" height="24px" />
+                    <SweepText
+                      fontWeight={600}
+                      color={sweepIsOpen && buyNow ? theme.white : theme.textPrimary}
+                      lineHeight="20px"
+                      marginTop="2px"
+                      marginBottom="2px"
+                    >
+                      Sweep
+                    </SweepText>
+                  </SweepTextContainer>
+                  <SweepBackgroundContainer toggled={sweepIsOpen} disabled={!buyNow} />
                 </SweepButton>
               )
             ) : null}

@@ -46,6 +46,17 @@ const BAG_WIDTH = 324
 
 export const CollectionBannerLoading = () => <Box height="full" width="full" className={styles.loadingBanner} />
 
+const CollectionDescriptionSection = styled(Column)`
+  ${styles.ScreenBreakpointsPaddings}
+`
+
+const CollectionDisplaySection = styled.div`
+  display: flex;
+  ${styles.ScreenBreakpointsPaddings}
+  align-items: flex-start;
+  position: relative;
+`
+
 const Collection = () => {
   const { contractAddress } = useParams()
   const setIsCollectionStatsLoading = useIsCollectionLoading((state) => state.setIsCollectionStatsLoading)
@@ -119,7 +130,7 @@ const Collection = () => {
                   )}
                 </Box>
               </Box>
-              <CollectionStatsContainer>
+              <CollectionDescriptionSection>
                 {(isLoading || collectionStats !== undefined) && (
                   <CollectionStats stats={collectionStats || ({} as GenieCollection)} isMobile={isMobile} />
                 )}
@@ -131,8 +142,8 @@ const Collection = () => {
                     toggleActivity()
                   }}
                 />
-              </CollectionStatsContainer>
-              <CollectionAssetsContainer>
+              </CollectionDescriptionSection>
+              <CollectionDisplaySection>
                 <Box position="sticky" top="72" width="0">
                   {isFiltersExpanded && <Filters traits={collectionStats?.traits ?? []} />}
                 </Box>
@@ -150,6 +161,7 @@ const Collection = () => {
                           contractAddress={contractAddress}
                           rarityVerified={collectionStats?.rarityVerified ?? false}
                           collectionName={collectionStats?.name ?? ''}
+                          chainId={chainId}
                         />
                       )
                     : contractAddress &&
@@ -163,7 +175,7 @@ const Collection = () => {
                         </Suspense>
                       )}
                 </AnimatedBox>
-              </CollectionAssetsContainer>
+              </CollectionDisplaySection>
             </>
           ) : (
             // TODO: Put no collection asset page here

@@ -47,6 +47,7 @@ const FiltersContainer = styled.div`
     background: ${({ theme }) => theme.black};
     z-index: ${({ theme }) => Z_INDEX.modal};
     width: auto;
+    overflow-y: scroll;
   }
 `
 

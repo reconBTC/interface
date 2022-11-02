@@ -61,7 +61,6 @@ const ActionsContainer = styled.div`
   gap: 10px;
   width: 100%;
   justify-content: space-between;
-  overflow: hidden;
 `
 
 const ActionsSubContainer = styled.div`
@@ -167,10 +166,14 @@ export const LoadingButton = styled.div`
   background-size: 400%;
 `
 
-export const HideOnMobileContainer = styled.div`
+export const HideOnMobileContainer = styled.div<{ isFiltersExpanded: boolean }>`
   width: max-content;
 
-  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.lg}px`}) {
+    ${({ isFiltersExpanded }) => isFiltersExpanded && `display: none;`}
+  }
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
     display: none;
   }
 `
@@ -501,7 +504,7 @@ export const CollectionNfts = ({ contractAddress, collectionStats, rarityVerifie
                   onClick={() => setFiltersExpanded(!isFiltersExpanded)}
                 />
               </TraceEvent>
-              <HideOnMobileContainer>
+              <HideOnMobileContainer isFiltersExpanded={isFiltersExpanded}>
                 <SortDropdown dropDownOptions={sortDropDownOptions} />
               </HideOnMobileContainer>
               <CollectionSearch />

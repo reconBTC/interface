@@ -15,31 +15,7 @@ import { useQuery } from 'react-query'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useSpring } from 'react-spring'
 import styled from 'styled-components/macro'
-
-const CollectionAssetsContainer = styled.div`
-  position: relative;
-  padding-right: 48px;
-  padding-left: 48px;
-  display: flex;
-  align-items: flex-start;
-
-  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
-    padding-right: 16px;
-    padding-left: 16px;
-  }
-`
-
-const CollectionStatsContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  padding-right: 48px;
-  padding-left: 48px;
-
-  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.sm}px`}) {
-    padding-right: 16px;
-    padding-left: 16px;
-  }
-`
+import { Z_INDEX } from 'theme/zIndex'
 
 const FILTER_WIDTH = 332
 const BAG_WIDTH = 324
@@ -55,6 +31,23 @@ const CollectionDisplaySection = styled.div`
   ${styles.ScreenBreakpointsPaddings}
   align-items: flex-start;
   position: relative;
+`
+
+const FiltersContainer = styled.div`
+  position: sticky;
+  top: 72px;
+  width: 0px;
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background: ${({ theme }) => theme.black};
+    z-index: ${({ theme }) => Z_INDEX.modal};
+    width: auto;
+  }
 `
 
 const Collection = () => {
@@ -144,9 +137,11 @@ const Collection = () => {
                 />
               </CollectionDescriptionSection>
               <CollectionDisplaySection>
-                <Box position="sticky" top="72" width="0">
-                  {isFiltersExpanded && <Filters traits={collectionStats?.traits ?? []} />}
-                </Box>
+                {isFiltersExpanded && (
+                  <FiltersContainer>
+                    <Filters traits={collectionStats?.traits ?? []} />
+                  </FiltersContainer>
+                )}
 
                 {/* @ts-ignore: https://github.com/microsoft/TypeScript/issues/34933 */}
                 <AnimatedBox

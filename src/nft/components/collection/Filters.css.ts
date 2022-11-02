@@ -10,8 +10,9 @@ export const container = style([
   {
     width: '300px',
     paddingBottom: '96px',
+    scrollbarWidth: 'none',
     '@media': {
-      [`(max-width: ${breakpoints.sm - 1}px)`]: {
+      [`(max-width: ${breakpoints.md}px)`]: {
         width: 'auto',
         height: 'auto',
         paddingBottom: '0px',
@@ -43,7 +44,7 @@ export const row = style([
     lineHeight: '20',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingLeft: '12',
+    paddingLeft: { sm: '16', md: '16', lg: '12' },
     paddingTop: '10',
     paddingBottom: '10',
   }),

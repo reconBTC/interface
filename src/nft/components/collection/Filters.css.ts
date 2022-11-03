@@ -10,6 +10,7 @@ export const container = style([
   {
     width: '300px',
     paddingBottom: '96px',
+    scrollbarWidth: 'none',
     '@media': {
       [`(max-width: ${breakpoints.sm - 1}px)`]: {
         width: 'auto',

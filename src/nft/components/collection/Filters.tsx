@@ -3,16 +3,49 @@ import * as styles from 'nft/components/collection/Filters.css'
 import { MarketplaceSelect } from 'nft/components/collection/MarketplaceSelect'
 import { PriceRange } from 'nft/components/collection/PriceRange'
 import { Column, Row } from 'nft/components/Flex'
+import { BagCloseIcon } from 'nft/components/icons'
 import { Checkbox } from 'nft/components/layout/Checkbox'
 import { subhead } from 'nft/css/common.css'
-import { useCollectionFilters } from 'nft/hooks'
+import { useCollectionFilters, useFiltersExpanded } from 'nft/hooks'
 import { Trait } from 'nft/hooks/useCollectionFilters'
 import { TraitPosition } from 'nft/hooks/useTraitsOpen'
 import { useReducer } from 'react'
+import styled from 'styled-components/macro'
+import { ThemedText } from 'theme'
 
 import { TraitSelect } from './TraitSelect'
 
+const FiltersHeader = styled.div`
+  display: none;
+  justify-content: space-between;
+  padding-top: 22px;
+  padding-left: 16px;
+  padding-right: 16px;
+  margin-bottom: 8px;
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
+    display: flex;
+  }
+`
+const IconWrapper = styled.button`
+  background-color: transparent;
+  border-radius: 8px;
+  border: none;
+  color: ${({ theme }) => theme.textPrimary};
+  cursor: pointer;
+  display: flex;
+  padding: 2px;
+  opacity: 1;
+  transition: 125ms ease opacity;
+  :hover {
+    opacity: 0.6;
+  }
+  :active {
+    opacity: 0.4;
+  }
+`
+
 export const Filters = ({ traitsByGroup }: { traitsByGroup: Record<string, Trait[]> }) => {
+  const [, setFiltersExpanded] = useFiltersExpanded()
   const { buyNow, setBuyNow } = useCollectionFilters((state) => ({
     buyNow: state.buyNow,
     setBuyNow: state.setBuyNow,
@@ -25,7 +58,12 @@ export const Filters = ({ traitsByGroup }: { traitsByGroup: Record<string, Trait
 
   return (
     <Box className={styles.container}>
-      <Row width="full" justifyContent="space-between"></Row>
+      <FiltersHeader>
+        <ThemedText.HeadlineSmall>Filter</ThemedText.HeadlineSmall>
+        <IconWrapper onClick={() => setFiltersExpanded(false)}>
+          <BagCloseIcon />
+        </IconWrapper>
+      </FiltersHeader>
       <Column marginTop="8">
         <Row
           justifyContent="space-between"

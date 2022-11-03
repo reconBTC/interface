@@ -7,7 +7,7 @@ import { MobileHoverBag } from 'nft/components/bag/MobileHoverBag'
 import { AnimatedBox, Box } from 'nft/components/Box'
 import { Activity, ActivitySwitcher, CollectionNfts, CollectionStats, Filters } from 'nft/components/collection'
 import { CollectionNftsAndMenuLoading } from 'nft/components/collection/CollectionNfts'
-import { Column, Row } from 'nft/components/Flex'
+import { Column } from 'nft/components/Flex'
 import { useBag, useCollectionFilters, useFiltersExpanded, useIsCollectionLoading, useIsMobile } from 'nft/hooks'
 import * as styles from 'nft/pages/collection/index.css'
 import { CollectionStatsFetcher } from 'nft/queries'
@@ -17,20 +17,42 @@ import { useQuery } from 'react-query'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useSpring } from 'react-spring'
 import styled from 'styled-components/macro'
+import { Z_INDEX } from 'theme/zIndex'
 
 const FILTER_WIDTH = 332
 const BAG_WIDTH = 324
 
 export const CollectionBannerLoading = () => <Box height="full" width="full" className={styles.loadingBanner} />
 
-const CollectionDescriptionSection = styled(Column)`
+const CollectionDescriptionSection = styled.div`
+  display: flex;
+  flex-direction: column;
   ${styles.ScreenBreakpointsPaddings}
 `
 
-const CollectionDisplaySection = styled(Row)`
+const CollectionDisplaySection = styled.div`
+  display: flex;
   ${styles.ScreenBreakpointsPaddings}
   align-items: flex-start;
   position: relative;
+`
+
+const FiltersContainer = styled.div`
+  position: sticky;
+  top: 72px;
+  width: 0px;
+
+  @media only screen and (max-width: ${({ theme }) => `${theme.breakpoint.md}px`}) {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background: ${({ theme }) => theme.black};
+    z-index: ${Z_INDEX.fixed};
+    width: auto;
+    overflow-y: scroll;
+  }
 `
 
 const Collection = () => {
@@ -128,10 +150,11 @@ const Collection = () => {
                 />
               </CollectionDescriptionSection>
               <CollectionDisplaySection>
-                <Box position="sticky" top="72" width="0">
-                  {isFiltersExpanded && <Filters traitsByGroup={collectionStats?.traits ?? {}} />}
-                </Box>
-
+                {isFiltersExpanded && (
+                  <FiltersContainer>
+                    {isFiltersExpanded && <Filters traitsByGroup={collectionStats?.traits ?? {}} />}
+                  </FiltersContainer>
+                )}
                 {/* @ts-ignore: https://github.com/microsoft/TypeScript/issues/34933 */}
                 <AnimatedBox
                   style={{

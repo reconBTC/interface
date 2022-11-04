@@ -12,7 +12,7 @@ export const container = style([
     paddingBottom: '96px',
     scrollbarWidth: 'none',
     '@media': {
-      [`(max-width: ${breakpoints.sm - 1}px)`]: {
+      [`(max-width: ${breakpoints.md}px)`]: {
         width: 'auto',
         height: 'auto',
         paddingBottom: '0px',
@@ -44,10 +44,17 @@ export const row = style([
     lineHeight: '20',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingLeft: '12',
+    paddingLeft: '16',
     paddingTop: '10',
     paddingBottom: '10',
   }),
+  {
+    selectors: {
+      '&::-webkit-details-marker': {
+        display: 'none',
+      },
+    },
+  },
 ])
 
 export const subRowHover = style({

@@ -1,6 +1,5 @@
 import { sendAnalyticsEvent } from 'analytics'
 import { EventName, FilterTypes } from 'analytics/constants'
-import clsx from 'clsx'
 import { NftGraphQlVariant, useNftGraphQlFlag } from 'featureFlags/flags/nftGraphQl'
 import { Box } from 'nft/components/Box'
 import * as styles from 'nft/components/collection/Filters.css'
@@ -11,8 +10,20 @@ import { useCollectionFilters } from 'nft/hooks/useCollectionFilters'
 import { useTraitsOpen } from 'nft/hooks/useTraitsOpen'
 import { TraitPosition } from 'nft/hooks/useTraitsOpen'
 import { FormEvent, useEffect, useMemo, useReducer, useState } from 'react'
+import styled from 'styled-components/macro'
 
 import { Checkbox } from '../layout/Checkbox'
+
+const DetailsContainer = styled.details<{ isOpen: boolean }>`
+  border-radius: ${({ isOpen }) => (isOpen ? '0px' : '12px')};
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 14px;
+
+  ::hover {
+    ${({ theme, isOpen }) => !isOpen && `background: ${theme.backgroundInteractive};`}
+  }
+`
 
 export const MARKETPLACE_ITEMS = {
   looksrare: 'LooksRare',
@@ -125,12 +136,7 @@ export const MarketplaceSelect = () => {
   return (
     <>
       <Box className={styles.detailsOpen} opacity={isOpen ? '1' : '0'} />
-      <Box
-        as="details"
-        className={clsx(subheadSmall, !isOpen && styles.rowHover)}
-        open={isOpen}
-        borderRadius={isOpen ? '0' : '12'}
-      >
+      <DetailsContainer isOpen={isOpen} open={isOpen}>
         <Box
           as="summary"
           className={`${styles.row} ${styles.rowHover}`}
@@ -165,7 +171,7 @@ export const MarketplaceSelect = () => {
         <Column className={styles.filterDropDowns} paddingBottom="8" paddingLeft="0">
           {MarketplaceItems}
         </Column>
-      </Box>
+      </DetailsContainer>
     </>
   )
 }
